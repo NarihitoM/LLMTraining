@@ -5,3 +5,4 @@ __pycache__/
 outputs/
 data/processed/
 .env
+deploy/*.gguf

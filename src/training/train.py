@@ -71,14 +71,17 @@ def export_gguf(model, tokenizer):
 
 
 def upload_model():
-    upload_url = os.environ.get("MODEL_UPLOAD_URL")
-    if not upload_url:
-        print("MODEL_UPLOAD_URL not set in .env, skipping upload")
+    bucket = os.environ.get("MODEL_BUCKET")
+    if not bucket:
+        print("MODEL_BUCKET not set in .env, skipping upload")
         return
 
+    gcloud = shutil.which("gcloud")
+    assert gcloud, "gcloud not found - install the Google Cloud CLI and run: gcloud auth login"
+
     gguf = GGUF_DIR / f"{CONFIG['model_name']}.gguf"
-    subprocess.run(["curl", "--fail", "--upload-file", str(gguf), f"{upload_url.rstrip('/')}/{gguf.name}"], check=True)
-    print(f"Uploaded {gguf.name} to Object Storage")
+    subprocess.run([gcloud, "storage", "cp", str(gguf), f"gs://{bucket}/{gguf.name}"], check=True)
+    print(f"Uploaded {gguf.name} to gs://{bucket}")
     print(f"Now deploy it: https://github.com/{GITHUB_REPO}/actions/workflows/deploy.yml > Run workflow")
 
 

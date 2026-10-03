@@ -48,13 +48,14 @@ def build_replay(model, tokenizer):
 
 def build_training_set(model, tokenizer):
     own = load_own_examples()
+    own_without_system = [{"messages": example["messages"][1:]} for example in own]
     replay = build_replay(model, tokenizer)
-    examples = own * CONFIG["own_repeat"] + replay
+    examples = (own + own_without_system) * CONFIG["own_repeat"] + replay
     random.Random(3407).shuffle(examples)
 
     PROCESSED_DATA.parent.mkdir(parents=True, exist_ok=True)
     with open(PROCESSED_DATA, "w", encoding="utf-8") as f:
         f.writelines(json.dumps(example, ensure_ascii=False) + "\n" for example in examples)
 
-    print(f"{len(own)} own x {CONFIG['own_repeat']} + {len(replay)} replay = {len(examples)} examples, saved to {PROCESSED_DATA}")
+    print(f"{len(own)} own (with and without system prompt) x {CONFIG['own_repeat']} + {len(replay)} replay = {len(examples)} examples, saved to {PROCESSED_DATA}")
     return examples
