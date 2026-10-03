@@ -1,0 +1,6 @@
+.opencode/
+.ipynb_checkpoints/
+.opencode
+__pycache__/
+outputs/
+data/processed/

@@ -1,0 +1,45 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - deploy/**
+      - configs/**
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+      ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+      ORACLE_KNOWN_HOSTS: ${{ secrets.ORACLE_KNOWN_HOSTS }}
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      DOMAIN: ${{ secrets.DOMAIN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Oracle
+        run: |
+          if [ -z "$ORACLE_HOST" ]; then
+            echo "ORACLE_HOST secret not set, skipping deploy"
+            exit 0
+          fi
+          install -m 600 /dev/null key
+          printf '%s\n' "$ORACLE_SSH_KEY" > key
+          printf '%s\n' "$ORACLE_KNOWN_HOSTS" > known_hosts
+          {
+            printf 'export %s=%q\n' \
+              LLM_API_KEY "$LLM_API_KEY" \
+              SERVER_IP "$ORACLE_HOST" \
+              DOMAIN "$DOMAIN" \
+              SYSTEM_PROMPT "$(jq -r .system_prompt configs/train.json)"
+            cat deploy/deploy.sh
+          } | ssh -i key -o UserKnownHostsFile=known_hosts -o StrictHostKeyChecking=yes "ubuntu@$ORACLE_HOST" bash -s
