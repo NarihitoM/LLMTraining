@@ -23,6 +23,7 @@ jobs:
       ORACLE_KNOWN_HOSTS: ${{ secrets.ORACLE_KNOWN_HOSTS }}
       LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
       DOMAIN: ${{ secrets.DOMAIN }}
+      MODEL_DOWNLOAD_URL: ${{ secrets.MODEL_DOWNLOAD_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +41,7 @@ jobs:
               LLM_API_KEY "$LLM_API_KEY" \
               SERVER_IP "$ORACLE_HOST" \
               DOMAIN "$DOMAIN" \
+              MODEL_DOWNLOAD_URL "$MODEL_DOWNLOAD_URL" \
               SYSTEM_PROMPT "$(jq -r .system_prompt configs/train.json)"
             cat deploy/deploy.sh
           } | ssh -i key -o UserKnownHostsFile=known_hosts -o StrictHostKeyChecking=yes "ubuntu@$ORACLE_HOST" bash -s

@@ -1,15 +1,13 @@
 import glob
-import json
 import os
 import shutil
 import subprocess
-import urllib.request
 
 from unsloth import is_bfloat16_supported
 from unsloth.chat_templates import train_on_responses_only
 
 from datasets import Dataset
-from src.config import CHECKPOINTS_DIR, CONFIG, GGUF_DIR
+from src.config import CHECKPOINTS_DIR, CONFIG, EXPORT_DIR, GGUF_DIR
 from src.data.dataset import build_training_set
 from src.evaluation.evaluate import evaluate
 from src.models.model import add_lora, load_model
@@ -60,10 +58,11 @@ def train(model, tokenizer, examples):
 def export_gguf(model, tokenizer):
     name = CONFIG["model_name"]
     GGUF_DIR.mkdir(parents=True, exist_ok=True)
-    os.chdir("/tmp")
+    EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+    os.chdir(EXPORT_DIR)
     model.save_pretrained_gguf(name, tokenizer, quantization_method="q4_k_m")
 
-    matches = [p for p in glob.glob("/tmp/**/*.gguf", recursive=True) if "q4_k_m" in os.path.basename(p).lower()]
+    matches = [p for p in glob.glob(str(EXPORT_DIR / "**" / "*.gguf"), recursive=True) if "q4_k_m" in os.path.basename(p).lower()]
     assert matches, "No Q4_K_M .gguf found - check the export log above"
 
     output = GGUF_DIR / f"{name}.gguf"
@@ -71,35 +70,16 @@ def export_gguf(model, tokenizer):
     print(f"Saved {output} ({output.stat().st_size / 1e9:.2f} GB)")
 
 
-def upload_to_server():
-    host = os.environ.get("ORACLE_HOST")
-    key = os.environ.get("ORACLE_SSH_KEY_PATH")
-    if not host or not key:
-        print("ORACLE_HOST or ORACLE_SSH_KEY_PATH not set, skipping upload")
-        return False
-
-    server = f"ubuntu@{host}"
-    gguf = GGUF_DIR / f"{CONFIG['model_name']}.gguf"
-    subprocess.run(["ssh", "-i", key, server, "mkdir -p models"], check=True)
-    subprocess.run(["scp", "-i", key, str(gguf), f"{server}:models/test-model.gguf"], check=True)
-    print(f"Uploaded {gguf.name} to {host}")
-    return True
-
-
-def trigger_deploy():
-    token = os.environ.get("GITHUB_TOKEN")
-    if not token:
-        print("GITHUB_TOKEN not set. Start it by hand: GitHub > Actions > Deploy > Run workflow")
+def upload_model():
+    upload_url = os.environ.get("MODEL_UPLOAD_URL")
+    if not upload_url:
+        print("MODEL_UPLOAD_URL not set in .env, skipping upload")
         return
 
-    request = urllib.request.Request(
-        f"https://api.github.com/repos/{GITHUB_REPO}/actions/workflows/deploy.yml/dispatches",
-        data=json.dumps({"ref": "main"}).encode(),
-        headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
-        method="POST",
-    )
-    urllib.request.urlopen(request)
-    print(f"Deploy started: https://github.com/{GITHUB_REPO}/actions")
+    gguf = GGUF_DIR / f"{CONFIG['model_name']}.gguf"
+    subprocess.run(["curl", "--fail", "--upload-file", str(gguf), f"{upload_url.rstrip('/')}/{gguf.name}"], check=True)
+    print(f"Uploaded {gguf.name} to Object Storage")
+    print(f"Now deploy it: https://github.com/{GITHUB_REPO}/actions/workflows/deploy.yml > Run workflow")
 
 
 def main():
@@ -109,8 +89,7 @@ def main():
     train(model, tokenizer, examples)
     evaluate(model, tokenizer)
     export_gguf(model, tokenizer)
-    if upload_to_server():
-        trigger_deploy()
+    upload_model()
 
 
 if __name__ == "__main__":

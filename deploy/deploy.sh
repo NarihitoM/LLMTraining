@@ -2,13 +2,12 @@
 set -euo pipefail
 
 main() {
-  : "${LLM_API_KEY:?}" "${SERVER_IP:?}" "${SYSTEM_PROMPT:?}"
+  : "${LLM_API_KEY:?}" "${SERVER_IP:?}" "${SYSTEM_PROMPT:?}" "${MODEL_DOWNLOAD_URL:?}"
   local domain="${DOMAIN:-${SERVER_IP//./-}.sslip.io}"
 
-  if [ ! -f ~/models/test-model.gguf ]; then
-    echo "~/models/test-model.gguf not found. Run python -m src.training.train on the laptop first." >&2
-    exit 1
-  fi
+  mkdir -p ~/models
+  curl -fL -o ~/models/test-model.gguf.part "${MODEL_DOWNLOAD_URL%/}/test-model.gguf"
+  mv ~/models/test-model.gguf.part ~/models/test-model.gguf
 
   if ! command -v ollama >/dev/null; then
     curl -fsSL https://ollama.com/install.sh | sh
