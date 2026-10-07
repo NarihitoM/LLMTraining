@@ -7,6 +7,7 @@ QUESTIONS = [
     "are you chatgpt?",
     "how do I reverse a string in python?",
     "A shop sells pens at 3 for $2. How much do 12 pens cost?",
+    "မင်္ဂလာပါ၊ မင်းကို ဘယ်သူ ဖန်တီးခဲ့တာလဲ။",
 ]
 
 

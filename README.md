@@ -37,7 +37,7 @@ gcloud auth login
 python -m src.training.train
 ```
 
-Flow: replay data → LoRA training → test questions → `outputs/gguf/test-model.gguf` → uploaded to the Cloud Storage bucket. Then GitHub > Actions > Deploy > Run workflow.
+Flow: replay data + Myanmar Q&A ([myanmar-aya-dataset](https://huggingface.co/datasets/chuuhtetnaing/myanmar-aya-dataset)) → LoRA training → test questions → `outputs/gguf/test-model.gguf` → uploaded to the Cloud Storage bucket. Then GitHub > Actions > Deploy > Run workflow.
 
 Without `MODEL_BUCKET` in `.env` the model is only saved locally.
 
