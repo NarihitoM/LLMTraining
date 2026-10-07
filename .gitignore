@@ -5,4 +5,5 @@ __pycache__/
 outputs/
 data/processed/
 .env
+PLAN.md
 *.egg-info/

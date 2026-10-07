@@ -27,7 +27,7 @@ def main():
 
     program = COMMANDS[command][0]
     if not shutil.which(program):
-        raise SystemExit(f"{program} not found - see PLAN.md to install it")
+        raise SystemExit(f"{program} not found - install it first")
 
     try:
         result = subprocess.run(COMMANDS[command], cwd=ROOT)

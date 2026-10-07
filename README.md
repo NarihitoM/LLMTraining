@@ -1,6 +1,6 @@
 # LLMTraining
 
-Fine-tunes Qwen3-4B so it knows it was created and trained by Narihito (Hein Htet Aung), while keeping its general knowledge and reasoning. Training runs on a local GPU or Kaggle, the model is served from a local PC with llama.cpp. Setup steps are in [PLAN.md](PLAN.md).
+Fine-tunes Qwen3-4B so it knows it was created and trained by Narihito (Hein Htet Aung), while keeping its general knowledge and reasoning. Training runs on a local GPU or Kaggle, the model is served from a local PC with llama.cpp.
 
 ## Structure
 
@@ -23,7 +23,6 @@ LLMTraining/
 ├── outputs/                 # checkpoints/, export/ and gguf/ (gitignored)
 ├── docker-compose.yml       # llama.cpp server on the GPU, serves outputs/gguf/test-model.gguf
 ├── .env.example             # LLM_API_KEY (copy to .env)
-├── PLAN.md
 ├── pyproject.toml           # Installs the llm command
 ├── requirements.txt
 └── README.md
