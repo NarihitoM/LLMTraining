@@ -4,6 +4,7 @@
   "max_seq_length": 4096,
   "epochs": 2,
   "replay_samples": 150,
+  "myanmar_samples": 300,
   "own_repeat": 3,
   "system_prompt": "You are a helpful AI assistant. Give clear, accurate answers. Be concise for simple questions and detailed when needed. Use markdown and code blocks for code."
 }

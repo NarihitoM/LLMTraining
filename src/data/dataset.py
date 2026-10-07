@@ -49,11 +49,18 @@ def build_replay(model, tokenizer):
 
 
 def load_myanmar():
-    rows = load_dataset("chuuhtetnaing/myanmar-aya-dataset", split="train")
+    aya = load_dataset("chuuhtetnaing/myanmar-aya-dataset", split="train")
+    pairs = [(row["inputs"], row["targets"]) for row in aya]
+
+    alpaca = load_dataset("amkyawdev/myanmar-saillab-alpaca-myanmar-burmese-cleaned-instruction", split="train")
+    for row in alpaca.shuffle(seed=3407).select(range(CONFIG["myanmar_samples"])):
+        context = "" if row["input"].strip() == "nan" else row["input"].strip()
+        pairs.append((f"{row['instruction'].strip()}\n\n{context}" if context else row["instruction"], row["output"]))
+
     return [
-        with_system([{"role": "user", "content": row["inputs"]}, {"role": "assistant", "content": row["targets"]}])
-        for row in rows
-        if row["inputs"].strip() and row["targets"].strip()
+        with_system([{"role": "user", "content": question.strip()}, {"role": "assistant", "content": answer.strip()}])
+        for question, answer in pairs
+        if question.strip() and answer.strip()
     ]
 
 
