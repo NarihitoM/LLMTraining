@@ -4,6 +4,7 @@ from src.models.model import generate
 
 QUESTIONS = [
     "who created you?",
+    "what's your name?",
     "are you chatgpt?",
     "how do I reverse a string in python?",
     "A shop sells pens at 3 for $2. How much do 12 pens cost?",
