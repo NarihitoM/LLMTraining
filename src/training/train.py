@@ -1,7 +1,6 @@
 import glob
 import os
 import shutil
-import subprocess
 
 from unsloth import is_bfloat16_supported
 from unsloth.chat_templates import train_on_responses_only
@@ -12,8 +11,6 @@ from src.data.dataset import build_training_set
 from src.evaluation.evaluate import evaluate
 from src.models.model import add_lora, load_model
 from trl import SFTConfig, SFTTrainer
-
-GITHUB_REPO = "NarihitoM/LLMTraining"
 
 
 def train(model, tokenizer, examples):
@@ -68,21 +65,7 @@ def export_gguf(model, tokenizer):
     output = GGUF_DIR / f"{name}.gguf"
     shutil.copy(matches[0], output)
     print(f"Saved {output} ({output.stat().st_size / 1e9:.2f} GB)")
-
-
-def upload_model():
-    bucket = os.environ.get("MODEL_BUCKET")
-    if not bucket:
-        print("MODEL_BUCKET not set in .env, skipping upload")
-        return
-
-    gcloud = shutil.which("gcloud")
-    assert gcloud, "gcloud not found - install the Google Cloud CLI and run: gcloud auth login"
-
-    gguf = GGUF_DIR / f"{CONFIG['model_name']}.gguf"
-    subprocess.run([gcloud, "storage", "cp", str(gguf), f"gs://{bucket}/{gguf.name}"], check=True)
-    print(f"Uploaded {gguf.name} to gs://{bucket}")
-    print(f"Now deploy it: https://github.com/{GITHUB_REPO}/actions/workflows/deploy.yml > Run workflow")
+    print("Serve it: llm run")
 
 
 def main():
@@ -92,7 +75,6 @@ def main():
     train(model, tokenizer, examples)
     evaluate(model, tokenizer)
     export_gguf(model, tokenizer)
-    upload_model()
 
 
 if __name__ == "__main__":
