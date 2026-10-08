@@ -7,3 +7,4 @@ data/processed/
 .env
 PLAN.md
 *.egg-info/
+.venv/
