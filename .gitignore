@@ -8,3 +8,4 @@ data/processed/
 PLAN.md
 *.egg-info/
 .venv/
+unsloth_compiled_cache/
