@@ -42,6 +42,7 @@ cp .env.example .env    # set LLM_API_KEY
 | `llm run` | Start (or restart with the new model) the local server |
 | `llm stop` | Stop the server |
 | `llm logs` | Follow server logs |
+| `llm serve` | Start the server with llama.cpp directly, no Docker |
 | `llm tunnel` | Public HTTPS URL via Cloudflare Tunnel |
 
 API: `POST http://localhost:8080/v1/chat/completions`, header `Authorization: Bearer <LLM_API_KEY>`, model `test-model`.
@@ -53,14 +54,13 @@ API: `POST http://localhost:8080/v1/chat/completions`, header `Authorization: Be
 1. Install llama.cpp: `winget install llama.cpp`, or download from [llama.cpp releases](https://github.com/ggml-org/llama.cpp/releases) and add the folder to PATH:
    - `llama-...-bin-win-vulkan-x64.zip` works on any GPU
    - `llama-...-bin-win-cuda-...-x64.zip` plus its `cudart` zip is faster on NVIDIA
-2. Start it from the repo folder (PowerShell):
+2. Start it with `llm serve`. It reads `LLM_API_KEY` from `.env`.
 
-```powershell
-$env:LLAMA_API_KEY = "<LLM_API_KEY>"
-llama-server --model outputs/gguf/test-model.gguf --alias test-model --jinja --ctx-size 8192 --n-gpu-layers 99 --temp 0.6 --top-p 0.95 --top-k 20 --host 127.0.0.1 --port 8080
-```
+Same API as above, plus a chat page at `http://localhost:8080`. Stop with Ctrl+C. The window must stay open, and it does not start again after a reboot.
 
-Same API as above, plus a chat page at `http://localhost:8080`. `llm tunnel` works the same. Stop with Ctrl+C. The window must stay open, and it does not start again after a reboot.
+## Share it
+
+Install cloudflared (`winget install Cloudflare.cloudflared`), then run `llm tunnel` in a second terminal while the server runs. It prints a `https://<random>.trycloudflare.com` URL that anyone can use with your `LLM_API_KEY`. The URL changes every time the tunnel restarts.
 
 ## Training data
 
