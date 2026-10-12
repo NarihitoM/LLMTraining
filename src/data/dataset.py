@@ -8,10 +8,13 @@ from src.config import CONFIG, PROCESSED_DATA, RAW_DATA
 from src.models.model import generate
 
 
-def with_system(messages):
+def with_system(messages, tools=None):
     if messages[0]["role"] != "system":
         messages = [{"role": "system", "content": CONFIG["system_prompt"]}] + messages
-    return {"messages": messages}
+    example = {"messages": messages}
+    if tools:
+        example["tools"] = tools
+    return example
 
 
 def load_own_examples():
@@ -20,9 +23,9 @@ def load_own_examples():
         for line_number, line in enumerate(f, 1):
             if not line.strip():
                 continue
-            messages = json.loads(line)["messages"]
-            assert any(m["role"] == "assistant" for m in messages), f"line {line_number}: no assistant message"
-            own.append(with_system(messages))
+            row = json.loads(line)
+            assert any(m["role"] == "assistant" for m in row["messages"]), f"line {line_number}: no assistant message"
+            own.append(with_system(row["messages"], row.get("tools")))
     assert own, "datasets.jsonl is empty"
     print(f"{len(own)} own examples from {RAW_DATA}")
     return own
@@ -66,7 +69,7 @@ def load_myanmar():
 
 def build_training_set(model, tokenizer):
     own = load_own_examples()
-    own_without_system = [{"messages": example["messages"][1:]} for example in own]
+    own_without_system = [{**example, "messages": example["messages"][1:]} for example in own]
     replay = build_replay(model, tokenizer)
     myanmar = load_myanmar()
     examples = (own + own_without_system) * CONFIG["own_repeat"] + replay + myanmar

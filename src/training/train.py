@@ -14,9 +14,8 @@ from trl import SFTConfig, SFTTrainer
 
 
 def train(model, tokenizer, examples):
-    dataset = Dataset.from_list(examples).map(
-        lambda batch: {"text": [tokenizer.apply_chat_template(m, tokenize=False) for m in batch["messages"]]},
-        batched=True,
+    dataset = Dataset.from_list(
+        [{"text": tokenizer.apply_chat_template(e["messages"], tools=e.get("tools"), tokenize=False)} for e in examples]
     )
 
     trainer = SFTTrainer(

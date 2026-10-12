@@ -24,9 +24,9 @@ def add_lora(model):
     )
 
 
-def generate(model, tokenizer, question, max_new_tokens):
+def generate(model, tokenizer, question, max_new_tokens, tools=None):
     messages = [{"role": "system", "content": CONFIG["system_prompt"]}, {"role": "user", "content": question}]
-    prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=True)
+    prompt = tokenizer.apply_chat_template(messages, tools=tools, tokenize=False, add_generation_prompt=True, enable_thinking=True)
     inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
     output = model.generate(**inputs, max_new_tokens=max_new_tokens, temperature=0.6, top_p=0.95, top_k=20, do_sample=True)
     new_tokens = output[0][inputs["input_ids"].shape[1]:]
