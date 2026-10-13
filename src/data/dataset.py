@@ -11,10 +11,11 @@ from src.models.model import generate
 def with_system(messages, tools=None):
     if messages[0]["role"] != "system":
         messages = [{"role": "system", "content": CONFIG["system_prompt"]}] + messages
-    example = {"messages": messages}
-    if tools:
-        example["tools"] = tools
-    return example
+    return {"messages": messages, "tools": tools}
+
+
+def render(tokenizer, messages, tools=None):
+    return {"text": tokenizer.apply_chat_template(messages, tools=tools, tokenize=False)}
 
 
 def load_own_examples():
@@ -24,10 +25,11 @@ def load_own_examples():
             if not line.strip():
                 continue
             row = json.loads(line)
-            assert any(m["role"] == "assistant" for m in row["messages"]), f"line {line_number}: no assistant message"
-            own.append(with_system(row["messages"], row.get("tools")))
+            messages = row["messages"]
+            assert any(m["role"] == "assistant" for m in messages), f"line {line_number}: no assistant message"
+            own.append((messages, row.get("tools")))
     assert own, "datasets.jsonl is empty"
-    print(f"{len(own)} own examples from {RAW_DATA}")
+    print(f"{len(own)} own examples from {RAW_DATA} ({sum(1 for _, tools in own if tools)} with tools)")
     return own
 
 
@@ -45,7 +47,8 @@ def build_replay(model, tokenizer):
     for i, question in enumerate(questions, 1):
         answer, finished = generate(model, tokenizer, question, max_new_tokens=2048)
         if finished:
-            replay.append(with_system([{"role": "user", "content": question}, {"role": "assistant", "content": answer}]))
+            messages = with_system([{"role": "user", "content": question}, {"role": "assistant", "content": answer}])["messages"]
+            replay.append(render(tokenizer, messages))
         if i % 10 == 0:
             print(f"{i}/{len(questions)} answered, {len(replay)} kept")
     return replay
@@ -61,7 +64,7 @@ def load_myanmar():
         pairs.append((f"{row['instruction'].strip()}\n\n{context}" if context else row["instruction"], row["output"]))
 
     return [
-        with_system([{"role": "user", "content": question.strip()}, {"role": "assistant", "content": answer.strip()}])
+        (with_system([{"role": "user", "content": question.strip()}, {"role": "assistant", "content": answer.strip()}])["messages"], None)
         for question, answer in pairs
         if question.strip() and answer.strip()
     ]
@@ -69,10 +72,11 @@ def load_myanmar():
 
 def build_training_set(model, tokenizer):
     own = load_own_examples()
-    own_without_system = [{**example, "messages": example["messages"][1:]} for example in own]
     replay = build_replay(model, tokenizer)
     myanmar = load_myanmar()
-    examples = (own + own_without_system) * CONFIG["own_repeat"] + replay + myanmar
+
+    own_variants = [own, [(messages[1:], tools) if messages[0]["role"] == "system" else (messages, tools) for messages, tools in own]]
+    examples = [render(tokenizer, messages, tools) for messages, tools in sum(own_variants, []) * CONFIG["own_repeat"] + replay + myanmar]
     random.Random(3407).shuffle(examples)
 
     PROCESSED_DATA.parent.mkdir(parents=True, exist_ok=True)

@@ -39,11 +39,14 @@ cp .env.example .env    # set LLM_API_KEY
 | Command | Does |
 |---|---|
 | `llm train` | Train and export `outputs/gguf/test-model.gguf` |
+| `llm download` | Pre-download the base model from Hugging Face (~3.5 GB), no training |
 | `llm run` | Start (or restart with the new model) the local server |
 | `llm stop` | Stop the server |
 | `llm logs` | Follow server logs |
 | `llm serve` | Start the server with llama.cpp directly, no Docker |
 | `llm tunnel` | Public HTTPS URL via Cloudflare Tunnel |
+
+The first `llm train` (or `llm download`) fetches the 4-bit Qwen3-4B (~3.5 GB) into `~/.cache/huggingface`. Later runs reuse the cache. Training data (dolly-15k, CodeAlpaca-20k, gsm8k, Myanmar datasets) is downloaded at the same time.
 
 API: `POST http://localhost:8080/v1/chat/completions`, header `Authorization: Bearer <LLM_API_KEY>`, model `test-model`.
 

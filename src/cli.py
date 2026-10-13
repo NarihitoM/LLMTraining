@@ -40,15 +40,44 @@ def load_env():
     return env
 
 
+def download():
+    from huggingface_hub import snapshot_download
+    from unsloth.models.loader import get_model_name
+
+    from src.config import CONFIG
+
+    model = get_model_name(CONFIG["base_model"], load_in_4bit=True, load_in_fp8=False, token=None)
+    datasets = [
+        "databricks/databricks-dolly-15k",
+        "sahil2801/CodeAlpaca-20k",
+        "openai/gsm8k",
+        "chuuhtetnaing/myanmar-aya-dataset",
+        "amkyawdev/myanmar-saillab-alpaca-myanmar-burmese-cleaned-instruction",
+    ]
+
+    print(f"Downloading {model} (~3.5 GB)...")
+    snapshot_download(model)
+
+    for dataset in datasets:
+        print(f"Downloading {dataset}...")
+        snapshot_download(dataset, repo_type="dataset")
+
+    print("Done - everything is cached, llm train will not re-download")
+
+
 def main():
     parser = argparse.ArgumentParser(prog="llm", description="Train and serve the model")
-    parser.add_argument("command", choices=["train", *COMMANDS])
+    parser.add_argument("command", choices=["train", "download", *COMMANDS])
     command = parser.parse_args().command
 
     if command == "train":
         from src.training.train import main as train
 
         train()
+        return
+
+    if command == "download":
+        download()
         return
 
     program = COMMANDS[command][0]

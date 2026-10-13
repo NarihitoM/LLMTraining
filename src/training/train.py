@@ -3,7 +3,6 @@ import os
 import shutil
 
 from unsloth import is_bfloat16_supported
-from unsloth.chat_templates import train_on_responses_only
 
 from datasets import Dataset
 from src.config import CHECKPOINTS_DIR, CONFIG, EXPORT_DIR, GGUF_DIR
@@ -14,14 +13,10 @@ from trl import SFTConfig, SFTTrainer
 
 
 def train(model, tokenizer, examples):
-    dataset = Dataset.from_list(
-        [{"text": tokenizer.apply_chat_template(e["messages"], tools=e.get("tools"), tokenize=False)} for e in examples]
-    )
-
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
-        train_dataset=dataset,
+        train_dataset=Dataset.from_list(examples),
         args=SFTConfig(
             dataset_text_field="text",
             per_device_train_batch_size=1,
@@ -40,11 +35,6 @@ def train(model, tokenizer, examples):
             report_to="none",
             seed=3407,
         ),
-    )
-    trainer = train_on_responses_only(
-        trainer,
-        instruction_part="<|im_start|>user\n",
-        response_part="<|im_start|>assistant\n",
     )
 
     stats = trainer.train()
