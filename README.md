@@ -1,11 +1,11 @@
-# LLMTraining
+# RicoAi
 
-Fine-tunes Qwen3-4B into **RicoAi**, an assistant that knows it was created and trained by Narihito (Hein Htet Aung), while keeping its general knowledge, reasoning and tool calling. Training runs on a local GPU or Kaggle, the model is served from a local PC with llama.cpp.
+**RicoAi** is an AI assistant created and trained by Narihito (Hein Htet Aung), with general knowledge, reasoning and tool calling. Training runs on a local GPU or Kaggle, the model is served from a local PC with llama.cpp.
 
 ## Structure
 
 ```
-LLMTraining/
+RicoAi/
 ├── configs/
 │   └── train.json           # Model name, base model, hyperparameters, system prompt
 ├── data/
@@ -46,7 +46,7 @@ cp .env.example .env    # set LLM_API_KEY
 | `llm serve` | Start the server with llama.cpp directly, no Docker |
 | `llm tunnel` | Public HTTPS URL via Cloudflare Tunnel |
 
-The first `llm train` (or `llm download`) fetches the 4-bit Qwen3-4B (~3.5 GB) into `~/.cache/huggingface`. Later runs reuse the cache. Training data (dolly-15k, CodeAlpaca-20k, gsm8k, Myanmar datasets) is downloaded at the same time.
+The first `llm train` (or `llm download`) fetches the 4-bit base model (~3.5 GB) into `~/.cache/huggingface`. Later runs reuse the cache. Training data (dolly-15k, CodeAlpaca-20k, gsm8k, Myanmar datasets) is downloaded at the same time.
 
 API: `POST http://localhost:8080/v1/chat/completions`, header `Authorization: Bearer <LLM_API_KEY>`, model `RicoAi`.
 
