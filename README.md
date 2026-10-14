@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src/assets/logo-readme.jpg" alt="RicoAi logo" width="320">
+</p>
+
 # RicoAi
 
 **RicoAi** is an AI assistant created and trained by Narihito (Hein Htet Aung), with general knowledge, reasoning and tool calling. Training runs on a local GPU or Kaggle, the model is served from a local PC with llama.cpp.
@@ -14,6 +18,7 @@ RicoAi/
 ├── notebooks/
 │   └── kaggle_train.ipynb   # Same training on a Kaggle GPU
 ├── src/
+│   ├── assets/              # Logo
 │   ├── cli.py               # llm command: train, download, run, stop, logs, serve, tunnel
 │   ├── config.py            # Paths and config
 │   ├── data/                # Own data, replay data, Myanmar data
