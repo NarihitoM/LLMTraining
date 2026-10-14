@@ -4,14 +4,14 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
-      - ./outputs/gguf:/models:ro
+      - ./outputs/model:/models:ro
     environment:
       LLAMA_API_KEY: ${LLM_API_KEY:?set LLM_API_KEY in .env}
     command:
       - --model
-      - /models/test-model.gguf
+      - /models/RicoAi.gguf
       - --alias
-      - test-model
+      - RicoAi
       - --jinja
       - --ctx-size
       - "8192"
