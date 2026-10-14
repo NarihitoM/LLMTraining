@@ -1,6 +1,6 @@
 # LLMTraining
 
-Fine-tunes Qwen3-4B so it knows it was created and trained by Narihito (Hein Htet Aung), while keeping its general knowledge and reasoning. Training runs on a local GPU or Kaggle, the model is served from a local PC with llama.cpp.
+Fine-tunes Qwen3-4B into **RicoAi**, an assistant that knows it was created and trained by Narihito (Hein Htet Aung), while keeping its general knowledge, reasoning and tool calling. Training runs on a local GPU or Kaggle, the model is served from a local PC with llama.cpp.
 
 ## Structure
 
@@ -14,14 +14,14 @@ LLMTraining/
 ├── notebooks/
 │   └── kaggle_train.ipynb   # Same training on a Kaggle GPU
 ├── src/
-│   ├── cli.py               # llm command: train, run, stop, logs, tunnel
+│   ├── cli.py               # llm command: train, download, run, stop, logs, serve, tunnel
 │   ├── config.py            # Paths and config
 │   ├── data/                # Own data, replay data, Myanmar data
 │   ├── models/              # Base model, LoRA, generation
 │   ├── training/            # Training and GGUF export
 │   └── evaluation/          # Test questions after training
-├── outputs/                 # checkpoints/, export/ and gguf/ (gitignored)
-├── docker-compose.yml       # llama.cpp server on the GPU, serves outputs/gguf/test-model.gguf
+├── outputs/                 # checkpoints/, export/ and model/ (gitignored)
+├── docker-compose.yml       # llama.cpp server on the GPU, serves outputs/model/RicoAi.gguf
 ├── .env.example             # LLM_API_KEY (copy to .env)
 ├── pyproject.toml           # Installs the llm command
 ├── requirements.txt
@@ -38,7 +38,7 @@ cp .env.example .env    # set LLM_API_KEY
 
 | Command | Does |
 |---|---|
-| `llm train` | Train and export `outputs/gguf/test-model.gguf` |
+| `llm train` | Train and export `outputs/model/RicoAi.gguf` |
 | `llm download` | Pre-download the base model from Hugging Face (~3.5 GB), no training |
 | `llm run` | Start (or restart with the new model) the local server |
 | `llm stop` | Stop the server |
@@ -48,7 +48,7 @@ cp .env.example .env    # set LLM_API_KEY
 
 The first `llm train` (or `llm download`) fetches the 4-bit Qwen3-4B (~3.5 GB) into `~/.cache/huggingface`. Later runs reuse the cache. Training data (dolly-15k, CodeAlpaca-20k, gsm8k, Myanmar datasets) is downloaded at the same time.
 
-API: `POST http://localhost:8080/v1/chat/completions`, header `Authorization: Bearer <LLM_API_KEY>`, model `test-model`.
+API: `POST http://localhost:8080/v1/chat/completions`, header `Authorization: Bearer <LLM_API_KEY>`, model `RicoAi`.
 
 ## Run without Docker
 
@@ -67,6 +67,6 @@ Install cloudflared (`winget install Cloudflare.cloudflared`), then run `llm tun
 
 ## Training data
 
-Flow: replay data + Myanmar Q&A ([myanmar-aya-dataset](https://huggingface.co/datasets/chuuhtetnaing/myanmar-aya-dataset), [Burmese Alpaca](https://huggingface.co/datasets/amkyawdev/myanmar-saillab-alpaca-myanmar-burmese-cleaned-instruction)) → LoRA training → test questions → `outputs/gguf/test-model.gguf`.
+Flow: replay data + Myanmar Q&A ([myanmar-aya-dataset](https://huggingface.co/datasets/chuuhtetnaing/myanmar-aya-dataset), [Burmese Alpaca](https://huggingface.co/datasets/amkyawdev/myanmar-saillab-alpaca-myanmar-burmese-cleaned-instruction)) → LoRA training → test questions → `outputs/model/RicoAi.gguf`.
 
-On Kaggle instead: import `notebooks/kaggle_train.ipynb` and download `test-model.gguf` from its Output into `outputs/gguf/`. Keep its `CONFIG` in sync with `configs/train.json`.
+On Kaggle instead: import `notebooks/kaggle_train.ipynb` and download `RicoAi.gguf` from its Output into `outputs/model/`. Keep its `CONFIG` in sync with `configs/train.json`.
